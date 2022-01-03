@@ -1,7 +1,6 @@
 package sviezypan.repo
 
 import sviezypan.domain.DomainError._
-import io.regec.domain._
 import sviezypan.domain.OrderDetail
 import zio.stream._
 import zio._

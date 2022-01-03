@@ -1,13 +1,11 @@
 package sviezypan.repo
 
 import zio._
+import zio.stream._
 import zio.logging._
 import zio.sql.postgresql.PostgresModule
 import zio.sql.ConnectionPool
 import zio.blocking._
-import zio.stream._
-import sviezypan.domain.DomainError._
-import io.regec.domain._
 import sviezypan.domain.{Customer, CustomerWithOrderDate, CustomerWithOrderNumber}
 import sviezypan.domain.DomainError.RepositoryError
 

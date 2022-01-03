@@ -1,7 +1,5 @@
 package sviezypan.repo
 
-import io.regec.domain._
-import sviezypan.domain.DomainError._
 import sviezypan.domain.DomainError.RepositoryError
 import sviezypan.domain.{CustomerWithOrderDate, Order}
 import zio._

@@ -4,7 +4,6 @@ import zio.test._
 import zio.test.Assertion._
 import zhttp.test._
 import zhttp.http._
-import io.regec.healthcheck._
 import zhttp.http.HttpData.Empty
 
 object HealthcheckSpec extends DefaultRunnableSpec {

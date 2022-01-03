@@ -15,7 +15,7 @@ lazy val root = (project in file("."))
     inThisBuild(
       List(
         name := "zio-sql-example",
-        organization := "io.regec",
+        organization := "sviezypan",
         version := "0.0.1",
         scalaVersion := "2.13.7",
       )
@@ -23,9 +23,8 @@ lazy val root = (project in file("."))
     // TODO remove, temporary solution to find zhttp-test
     // https://github.com/dream11/zio-http/issues/321
     resolvers += "Sonatype OSS Snapshots s01" at "https://s01.oss.sonatype.org/content/repositories/snapshots",
-    name := "zio-quickstart",
+    name := "zio-sql-example",
     libraryDependencies ++= Seq(
-      //"org.postgresql" % "postgresql" % "42.3.1",
       //core
       "dev.zio" %% "zio" % zioVersion,
       "io.github.kitlangton" %% "zio-magic" % zioMagicVersion,

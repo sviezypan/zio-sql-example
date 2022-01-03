@@ -16,13 +16,7 @@ package sviezypan.api
 // import zio.test.mock.MockRandom
 // import zhttp.http.HttpData.StreamData
 // import zio.logging._
-// import io.regec.Main
-// import io.regec.repo._
-// import io.regec.service._
-// import io.regec.api.protocol._
-import io.regec.util._
 import sviezypan.util.HttpRunnableSpec
-// import io.regec.domain._
 
 object HttpRoutesSpec extends HttpRunnableSpec(8082) {
 

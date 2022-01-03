@@ -5,9 +5,7 @@ import zio._
 import zio.stream._
 import zio.json._
 import zio.logging._
-
 import java.util.UUID
-import io.regec.domain._
 import sviezypan.domain.{Customer, DomainError, Order}
 import sviezypan.repo.{CustomerRepository, OrderRepository, PriceRepository}
 

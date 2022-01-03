@@ -3,7 +3,6 @@ package sviezypan.repo
 import zio._
 import zio.stream._
 import zio.logging.Logging
-import io.regec.domain._
 import sviezypan.domain.DomainError.RepositoryError
 import sviezypan.domain.{CustomerWithOrderDate, Order}
 import zio.sql.postgresql.PostgresModule

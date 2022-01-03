@@ -5,10 +5,7 @@ import zhttp.service.{EventLoopGroup, Server}
 import zio._
 import zio.config._
 import zio.logging._
-import io.regec.api._
 import sviezypan.config.configuration._
-import io.regec.healthcheck._
-import io.regec.repo._
 import sviezypan.api.HttpRoutes
 import sviezypan.healthcheck.Healthcheck
 import sviezypan.repo.{CustomerRepositoryLive, OrderRepositoryLive, PriceRepositoryLive}
