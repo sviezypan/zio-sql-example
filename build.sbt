@@ -1,4 +1,4 @@
-val zioSqlVersion = "0.0.0+937-f982c609+20220103-1522-SNAPSHOT"
+val zioSqlVersion = "0.0.0+965-8f6871e5-SNAPSHOT"
 
 val zioVersion = "1.0.12"
 val zioHttpVersion = "1.0.0.0-RC17"
@@ -9,6 +9,7 @@ val testcontainersVersion      = "1.16.2"
 val testcontainersScalaVersion = "0.39.12"
 val zioConfigVersion = "1.0.10"
 val zioMagicVersion = "0.3.11"
+val zioSchemaVersion           = "0.1.4"
 
 lazy val root = (project in file("."))
   .settings(
@@ -22,7 +23,8 @@ lazy val root = (project in file("."))
     ),
     // TODO remove, temporary solution to find zhttp-test
     // https://github.com/dream11/zio-http/issues/321
-    resolvers += "Sonatype OSS Snapshots s01" at "https://s01.oss.sonatype.org/content/repositories/snapshots",
+    resolvers += 
+      "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
     name := "zio-sql-example",
     libraryDependencies ++= Seq(
       //core
@@ -32,11 +34,13 @@ lazy val root = (project in file("."))
       "dev.zio" %% "zio-sql-postgres" % zioSqlVersion,
       //http
       "io.d11" %% "zhttp" % zioHttpVersion,
-      "io.d11" %% "zhttp-test" % "1.0.0.0-RC17+37-1c8ceea7-SNAPSHOT" % Test,
+      //"io.d11" %% "zhttp-test" % "1.0.0.0-RC17+37-1c8ceea7-SNAPSHOT" % Test,
       //config
       "dev.zio" %% "zio-config" % zioConfigVersion,
       "dev.zio" %% "zio-config-typesafe" % zioConfigVersion,
       "dev.zio" %% "zio-config-magnolia" % zioConfigVersion,
+       "dev.zio"           %% "zio-schema"                 % zioSchemaVersion,
+      "dev.zio"           %% "zio-schema-derivation"      % zioSchemaVersion,
       //logging
       "dev.zio" %% "zio-logging" % zioLoggingVersion,
       "dev.zio" %% "zio-logging-slf4j" % zioLoggingVersion,

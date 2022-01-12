@@ -1,12 +1,5 @@
 ## ZIO-SQL example application
 
-# ZIO-SQL is not yet released...
-so if you want to try out zio-sql and app in this repo, do:
-1. clone zio-sql and cd into zio-sql
-2. sbt publishLocal
-3. find published version from $HOME/.ivy2/local/dev.zio/zio-sql_2.13/
-4. replace zioSqlVersion value in build.sbt
-
 # Introduction
 This repo has as an example code to demonstrate how to use zio-sql to communicate with sql database of your choice (this repo uses postgresql). It contains also zio-http, zio-config, zio-json and other libraries of the ecosystem.
 
