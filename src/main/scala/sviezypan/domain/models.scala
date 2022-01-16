@@ -62,6 +62,12 @@ object CustomerWithOrderDate {
   implicit val encoder: JsonEncoder[CustomerWithOrderDate] = DeriveJsonEncoder.gen[CustomerWithOrderDate]
 }
 
+final case class CustomerWrapper(customers: List[CustomerWithOrderDate])
+
+object CustomerWrapper {
+  implicit val encoder: JsonEncoder[CustomerWrapper] = DeriveJsonEncoder.gen[CustomerWrapper]
+}
+
 final case class CustomerWithOrderNumber(
     firstName: String,
     lastName: String,
@@ -70,6 +76,12 @@ final case class CustomerWithOrderNumber(
 
 object CustomerWithOrderNumber {
   implicit val encoder: JsonEncoder[CustomerWithOrderNumber] = DeriveJsonEncoder.gen[CustomerWithOrderNumber]
+}
+
+final case class CustomerCountWrapper(customers: List[CustomerWithOrderNumber])
+
+object CustomerCountWrapper {
+  implicit val encoder: JsonEncoder[CustomerCountWrapper] = DeriveJsonEncoder.gen[CustomerCountWrapper]
 }
 
 //TODO do it right

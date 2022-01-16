@@ -3,7 +3,6 @@ package sviezypan.repo
 import zio._
 import zio.stream._
 import zio.logging._
-import zio.sql.postgresql.PostgresModule
 import zio.sql.ConnectionPool
 import zio.blocking._
 import sviezypan.domain.{Customer, CustomerWithOrderDate, CustomerWithOrderNumber}
@@ -17,31 +16,16 @@ final class CustomerRepositoryLive(
     blocking: Blocking.Service,
     pool: ConnectionPool,
   ) extends CustomerRepository
-    with PostgresModule {
+    with TableModel {
 
   lazy val driver = new SqlDriverLive(blocking, pool)
-
-  import ColumnSet._
-
-  val customers =
-    (uuid("id") ++ string("first_name") ++ string("last_name") ++ boolean(
-      "verified"
-    ) ++ localDate("dob"))
-      .table("customers")
-
-  val customerId :*: fName :*: lName :*: verified :*: dob :*: _ =
-    customers.columns
-
-  val orders = (uuid("id") ++ uuid("customer_id") ++ localDate("order_date")).table("orders")
-
-  val orderId :*: fkCustomerId :*: orderDate :*: _ = orders.columns
 
   def findAll(): ZStream[Any, RepositoryError, Customer] = {
     val selectAll = select(customerId ++ fName ++ lName ++ verified ++ dob).from(customers)
 
+    ZStream.fromEffect(log.info(s"Query to execute findAll is ${renderRead(selectAll)}")) *>
     execute(selectAll.to[UUID, String, String, Boolean, LocalDate, Customer](Customer.apply))
-      .mapError(e => RepositoryError(e.getCause()))
-      .provide(Has(driver))
+      .provideDriver(driver, log)
   }
 
   def findById(id: UUID): ZIO[Any, RepositoryError, Customer] = {
@@ -49,15 +33,9 @@ final class CustomerRepositoryLive(
       .from(customers)
       .where(customerId === id)
 
-    log.info(s"Query to execute is ${renderRead(selectAll)}") *>
+    log.info(s"Query to execute findById is ${renderRead(selectAll)}") *>
     execute(selectAll.to[UUID, String, String, Boolean, LocalDate, Customer](Customer.apply))
-      .runHead
-      .some
-      .mapError {
-        case None    => RepositoryError(new RuntimeException(s"Order with id $id does not exists"))
-        case Some(e) => RepositoryError(e.getCause())
-      }
-      .provide(Has(driver))
+      .findFirst(driver, log, id)
   }
 
   def create(customer: Customer): ZIO[Any, RepositoryError, Unit] = {
@@ -66,10 +44,9 @@ final class CustomerRepositoryLive(
         (customer.id, customer.dateOfBirth, customer.fname, customer.lname, customer.verified)
       )
 
+    log.info(s"Query to insert customer is ${renderInsert(query)}") *>
     execute(query)
-      .tapError(e => log.error(e.getMessage()))
-      .mapError(e => RepositoryError(e.getCause()))
-      .provide(Has(driver))
+      .provideAndLog(driver, log)
       .unit
   }
 
@@ -79,21 +56,11 @@ final class CustomerRepositoryLive(
     val query = insertInto(customers)(customerId ++ dob ++ fName ++ lName ++ verified)
       .values(data)
 
+
+    log.info(s"Query to insert customers is ${renderInsert(query)}") *>      
     execute(query)
-      .tapError(e => log.error(e.getMessage()))
-      .mapError(e => RepositoryError(e.getCause()))
-      .provide(Has(driver))
+      .provideAndLog(driver, log)
   }
-
-  val orderDateDerivedTable = customers
-    .subselect(orderDate)
-    .from(orders)
-    .limit(1)
-    .where(customerId === fkCustomerId)
-    .orderBy(Ordering.Desc(orderDate))
-    .asTable("derived")
-
-  val orderDateDerived :*: _ = orderDateDerivedTable.columns
 
   /** Lateral join
     *
@@ -109,14 +76,12 @@ final class CustomerRepositoryLive(
         .from(customers.lateral(orderDateDerivedTable))
         .orderBy(Ordering.Desc(orderDateDerived))
 
-    ZStream.fromEffect(log.info(s"Query to execute is ${renderRead(query)}")) *>
+    ZStream.fromEffect(log.info(s"Query to execute findAllWithLatestOrder is ${renderRead(query)}")) *>
     execute(
       query
         .to[String, String, LocalDate, CustomerWithOrderDate](CustomerWithOrderDate.apply)
     )
-      .tapError(e => log.error(e.getMessage()))
-      .mapError(e => RepositoryError(e.getCause()))
-      .provide(Has(driver))
+      .provideDriver(driver, log)
   }
 
   /** Correlated subqueries in selection
@@ -136,9 +101,7 @@ final class CustomerRepositoryLive(
       query
         .to[String, String, Long, CustomerWithOrderNumber](CustomerWithOrderNumber.apply)
     )
-      .tapError(e => log.error(e.getMessage()))
-      .mapError(e => RepositoryError(e.getCause()))
-      .provide(Has(driver))
+      .provideDriver(driver, log)
   }
 
   def removeAll(): ZIO[Any, RepositoryError, Int] =

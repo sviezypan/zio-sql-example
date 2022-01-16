@@ -8,7 +8,7 @@ import zio.logging._
 import sviezypan.config.configuration._
 import sviezypan.api.HttpRoutes
 import sviezypan.healthcheck.Healthcheck
-import sviezypan.repo.{CustomerRepositoryLive, OrderRepositoryLive, PriceRepositoryLive}
+import sviezypan.repo.{CustomerRepositoryLive, OrderRepositoryLive}
 import zio.magic._
 import zio.sql.ConnectionPool
 
@@ -30,7 +30,6 @@ object Main extends App {
         ServerConfig.layer,
         ServerChannelFactory.auto,
         EventLoopGroup.auto(),
-        PriceRepositoryLive.layer,
         OrderRepositoryLive.layer,
         CustomerRepositoryLive.layer,
         loggingEnv,

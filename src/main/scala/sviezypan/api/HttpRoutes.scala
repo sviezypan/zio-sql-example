@@ -6,75 +6,62 @@ import zio.stream._
 import zio.json._
 import zio.logging._
 import java.util.UUID
-import sviezypan.domain.{Customer, DomainError, Order}
-import sviezypan.repo.{CustomerRepository, OrderRepository, PriceRepository}
+import sviezypan.domain._
+import sviezypan.repo._
 
 object HttpRoutes {
 
   val app
-      : HttpApp[Has[PriceRepository] with Has[OrderRepository] with Has[CustomerRepository] with Logging, Throwable] =
+      : HttpApp[Has[OrderRepository] with Has[CustomerRepository] with Logging, Throwable] =
     HttpApp.collectM {
       case Method.GET -> Root / "orders" / "count" =>
         OrderRepository
           .countAllOrders()
           .either
           .map {
-            case Right(count) => Response.text(count.toString())
-            case Left(_)      => Response.status(Status.BAD_REQUEST)
+            case Right(count) => Response.jsonString(s"{\"count\": \"${count.toString()}\"}")
+            case Left(_)      => Response.status(Status.INTERNAL_SERVER_ERROR)
           }
 
-      //TODO fix this
-      // case Method.GET -> Root / "orders" / "above-average-price" =>
-      //   PriceRepository
-      //     .findOrdersWithHigherThanAvgPrice()
-      //     .runCollect
-      //     .map(chunk => chunk.toJson)
-      //     .either
-      //     .map {
-      //       case Right(order) => Response.jsonString(order.toJson)
-      //       case Left(_)      => Response.status(Status.BAD_REQUEST)
-      //     }
-
-      //TODO format chunks better
-      case Method.GET -> Root / "customers" / "orders" / "all" =>
+      case Method.GET -> Root / "customers" / "orders" / "join" =>
         OrderRepository
           .findAllWithNames()
           .runCollect
-          .map(chunk => chunk.toJson)
+          .map(chunk => CustomerWrapper(chunk.toList))
           .either
           .map {
-            case Right(order) => Response.jsonString(order.toJson)
-            case Left(_)      => Response.status(Status.BAD_REQUEST)
+            case Right(customers) => Response.jsonString(customers.toJson)
+            case Left(_)      => Response.status(Status.INTERNAL_SERVER_ERROR)
           }
 
-      case Method.GET -> Root / "customers" / "orders" / "latest" =>
+      case Method.GET -> Root / "customers" / "orders" / "latest-date" =>
         CustomerRepository
           .findAllWithLatestOrder()
           .runCollect
-          .map(chunk => chunk.toJson)
+          .map(chunk => CustomerWrapper(chunk.toList))
           .either
           .map {
-            case Right(value) => Response.jsonString(value.toJson)
-            case Left(_)      => Response.status(Status.BAD_REQUEST)
+            case Right(customers) => Response.jsonString(customers.toJson)
+            case Left(_)      => Response.status(Status.INTERNAL_SERVER_ERROR)
           }
 
       case Method.GET -> Root / "customers" / "orders" / "count" =>
         CustomerRepository
           .findAllWithCountOfOrders()
           .runCollect
-          .map(chunk => chunk.toJson)
+          .map(chunk => CustomerCountWrapper(chunk.toList))
           .either
           .map {
-            case Right(value) => Response.jsonString(value.toJson)
-            case Left(_)      => Response.status(Status.BAD_REQUEST)
+            case Right(customers) => Response.jsonString(customers.toJson)
+            case Left(_)      => Response.status(Status.INTERNAL_SERVER_ERROR)
           }
 
       case Method.GET -> Root / "customers" =>
-        //TODO find out if this is the right way to stream response
+        //TODO what is the right way to stream response to xzio-http ???
         ZIO.succeed(
           Response.HttpResponse(
             status = Status.OK,
-            headers = Nil,
+            headers = List(Header.contentTypeJson),
             content = HttpData.fromStream(
               CustomerRepository
                 .findAll()
@@ -86,10 +73,11 @@ object HttpRoutes {
         )
 
       case Method.GET -> Root / "orders" =>
+        //TODO what is the right way to stream response to xzio-http ???
         ZIO.succeed(
           Response.HttpResponse(
             status = Status.OK,
-            headers = Nil,
+            headers = List(Header.contentTypeJson),
             content = HttpData.fromStream(
               OrderRepository
                 .findAll()
@@ -118,7 +106,7 @@ object HttpRoutes {
           .either
           .map {
             case Right(customer) => Response.jsonString(customer.toJson)
-            case Left(_)         => Response.status(Status.NOT_FOUND)
+            case Left(e)         => Response.text(e.getMessage())
           }
 
       case req @ Method.POST -> Root / "orders" =>
