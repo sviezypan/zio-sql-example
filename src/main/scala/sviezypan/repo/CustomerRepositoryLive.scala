@@ -113,7 +113,7 @@ final class CustomerRepositoryLive(
 object CustomerRepositoryLive {
 
   val layer
-      : ZLayer[Has[Logger[String]] with Has[Blocking.Service] with Has[ConnectionPool], Nothing, Has[CustomerRepository]] =
+      : ZLayer[Has[Logger[String]] with Has[Blocking.Service] with Has[ConnectionPool], Throwable, Has[CustomerRepository]] =
     (for {
       logging <- ZIO.service[Logger[String]]
       blocking <- ZIO.service[Blocking.Service]

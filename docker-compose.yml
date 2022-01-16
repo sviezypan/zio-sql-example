@@ -13,4 +13,4 @@ services:
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=zio-sql-example-db
     ports:
-      - "5435:5432"
+      - "5432:5432"

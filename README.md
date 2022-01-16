@@ -1,9 +1,9 @@
 ## ZIO-SQL example application
 
 # Introduction
-This repo has as an example code to demonstrate how to use zio-sql to communicate with sql database of your choice (this repo uses postgresql). It contains also zio-http, zio-config, zio-json and other libraries of the ecosystem.
+This repo contains a very simple example application demonstrating how to use zio-sql to communicate with SQL database of your choice - I am using postgresql. It uses zio-http, zio-config, zio-json and other libraries of the ecosystem while using the best practices regarding ZLayers.
 
-App exposes an http api that query and modify the state of db. Database contains simple eshop-like `customers` and `orders` tables.
+App exposes an http APIs that query and modify postgres db through `CustomerRepository` and `OrderRepository`. Database contains `customers` and `orders` tables. Db schema and table content are loaded from `src/main/resources/init.sql` script.
 
 # To launch
 1. clone this repo
@@ -27,7 +27,9 @@ App exposes an http api that query and modify the state of db. Database contains
     "date":"2022-03-25"
 }
 ```
+
 - POST localhost:8080/customers
+
 ```json
 {
     "id": "6d90ce5b-55d4-4725-8c9f-9bb5c8104e62",
@@ -38,6 +40,7 @@ App exposes an http api that query and modify the state of db. Database contains
 }
 ```
 
-# TODO
-1. Tests
-2. Transactions
+## TODO
+1. upgrade to ZIO 2.0
+2. add `transactions` example - order references customer through foreign key, check if customer exist before inserting 
+3. introduce service layer between api and repo when working on point 2.
