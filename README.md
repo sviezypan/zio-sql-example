@@ -39,5 +39,5 @@ App exposes an http api that query and modify the state of db. Database contains
 ```
 
 # TODO
-1. Test
+1. Tests
 2. Transactions
