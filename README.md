@@ -49,6 +49,4 @@ Other than ZIO-SQL I am using zio-http, zio-config, zio-json and other libraries
 ```
 
 ## TODO
-1. upgrade to ZIO 2.0
-2. add `transactions` example - order references customer through foreign key, check if customer exist before inserting 
-3. introduce service layer between api and repo when working on point 2.
+1. add `transactions` example

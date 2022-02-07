@@ -4,9 +4,8 @@ import zio._
 import zhttp.http._
 
 object Healthcheck {
-  //just to verify is server is returning
-  val expose: HttpApp[Any, Throwable] = HttpApp.collectM {
-    case Method.GET -> Root / "health" =>
+  val expose: HttpApp[Any, Throwable] = Http.collectZIO {
+    case Method.GET -> !! / "health" =>
       ZIO.succeed(Response.status(Status.OK))
   }
 }

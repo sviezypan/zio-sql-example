@@ -2,53 +2,61 @@ package sviezypan.repo
 
 import zio._
 import zio.stream._
-import zio.logging.Logging
 import sviezypan.domain.DomainError.RepositoryError
 import sviezypan.domain.{CustomerWithOrderDate, Order}
-import zio.sql.ConnectionPool
-import zio.logging.Logger
-import zio.blocking._
 
 import java.util.UUID
 import java.time.LocalDate
+import zio.sql.ConnectionPoolConfig
+import zio.sql.ConnectionPool
 
 final class OrderRepositoryLive(
-    log: Logger[String],
-    blocking: Blocking.Service,
-    pool: ConnectionPool,
-  ) extends OrderRepository
+    poolConfig: ConnectionPoolConfig
+) extends OrderRepository
     with TableModel {
 
-  lazy val driver = new SqlDriverLive(blocking, pool)
+  lazy val poolConfigLayer = ZLayer.succeed(poolConfig)
+
+  lazy val driverLayer = ZLayer
+    .make[SqlDriver](
+      SqlDriver.live,
+      ConnectionPool.live,
+      poolConfigLayer,
+      Clock.live
+    )
+    .orDie
 
   def findOrderById(id: UUID): IO[RepositoryError, Order] = {
     val query = select(orderId ++ fkCustomerId ++ orderDate)
       .from(orders)
       .where(orderId === id)
 
-    log.info(s"Query to execute findOrderById is ${renderRead(query)}") *>
-    execute(query.to[UUID, UUID, LocalDate, Order](Order.apply))
-      .findFirst(driver, log, id)
+    ZIO.logInfo(s"Query to execute findOrderById is ${renderRead(query)}") *>
+      execute(query.to((Order.apply _).tupled))
+        .findFirst(driverLayer, id)
   }
 
   def findAll(): ZStream[Any, RepositoryError, Order] = {
     val query = select(orderId ++ fkCustomerId ++ orderDate)
       .from(orders)
 
-    execute(query.to[UUID, UUID, LocalDate, Order](Order.apply))
-      .provideDriver(driver, log)
+    execute(query.to((Order.apply _).tupled))
+      .provideDriver(driverLayer)
   }
 
-  def findAllWithNames(): ZStream[Any, RepositoryError, CustomerWithOrderDate] = {
+  def findAllWithNames()
+      : ZStream[Any, RepositoryError, CustomerWithOrderDate] = {
     val query = select(fName ++ lName ++ orderDate)
       .from(customers.join(orders).on(fkCustomerId === customerId))
 
-    ZStream.fromEffect(log.info(s"Query to execute findAllWithNames is ${renderRead(query)}")) *>
-    execute(
-      query
-        .to[String, String, LocalDate, CustomerWithOrderDate](CustomerWithOrderDate.apply)
-    )
-      .provideDriver(driver, log)
+    ZStream.fromZIO(
+      ZIO.logInfo(s"Query to execute findAllWithNames is ${renderRead(query)}")
+    ) *>
+      execute(
+        query
+          .to((CustomerWithOrderDate.apply _).tupled)
+      )
+        .provideDriver(driverLayer)
   }
 
   def add(order: Order): IO[RepositoryError, Int] =
@@ -62,33 +70,30 @@ final class OrderRepositoryLive(
 
     val query = select(Count(orderId)).from(orders)
 
-    log.info(s"For count all, the orders query is ${renderRead(query)}") *>
-    execute(query.to[Long, Int](_.toInt))
-      .provideDriver(driver, log)
-      .runCollect
-      .map(_.head)
+    ZIO.logInfo(s"For count all, the orders query is ${renderRead(query)}") *>
+      execute(query)
+        .provideDriver(driverLayer)
+        .runCollect
+        .map(_.map(_.toInt).head)
   }
 
   def removeAll(): ZIO[Any, RepositoryError, Int] =
     execute(deleteFrom(orders))
-      .provideAndLog(driver, log)
+      .provideAndLog(driverLayer)
 
-  private def insertOrder(data: Seq[(UUID, UUID, LocalDate)]): IO[RepositoryError, Int] = {
+  private def insertOrder(
+      data: Seq[(UUID, UUID, LocalDate)]
+  ): IO[RepositoryError, Int] = {
     val query = insertInto(orders)(orderId ++ fkCustomerId ++ orderDate)
       .values(data)
 
-    log.info(s"Insert order query is ${renderInsert(query)}") *>
-    execute(query)
-      .provideAndLog(driver, log)
+    ZIO.logInfo(s"Insert order query is ${renderInsert(query)}") *>
+      execute(query)
+        .provideAndLog(driverLayer)
   }
 }
 
 object OrderRepositoryLive {
-
-  val layer: ZLayer[Logging with Blocking with Has[ConnectionPool], Nothing, Has[OrderRepository]] =
-    (for {
-      logging <- ZIO.service[Logger[String]]
-      blocking <- ZIO.service[Blocking.Service]
-      connectionPool <- ZIO.service[ConnectionPool]
-    } yield new OrderRepositoryLive(logging, blocking, connectionPool)).toLayer
+  val layer: ZLayer[ConnectionPoolConfig, Nothing, OrderRepository] =
+    (new OrderRepositoryLive(_)).toLayer
 }

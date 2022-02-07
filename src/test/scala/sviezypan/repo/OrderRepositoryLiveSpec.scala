@@ -1,39 +1,32 @@
 package sviezypan.repo
 
+import zio._
 import zio.test._
 import zio.test.Assertion._
-import zio.logging._
-import zio.blocking._
-import zio.clock._
-import sviezypan.repo.postgresql._
-import zio.sql.ConnectionPool
-import zio.test.TestAspect._
 import sviezypan.domain.Order
+import zio.test.TestAspect._
 import java.util.UUID
 import java.time.LocalDate
+import sviezypan.repo.postgresql.PostgresContainer
 
 object OrderRepositoryLiveSpec extends DefaultRunnableSpec {
 
-  val loggingEnv = 
-    Logging.console(LogLevel.Info, LogFormat.ColoredLogFormat()) >>>
-        Logging.withRootLoggerName("zio-sql-example")    
-      
-  val containerLayer = PostgresContainer.make() ++ Blocking.live ++ Clock.live    
-
-  val connectionPoolLayer = (containerLayer >+> PostgresContainer.connectionPoolConfigLayer) >+> ConnectionPool.live
-
-  val testLayer = (connectionPoolLayer ++ loggingEnv) >>> OrderRepositoryLive.layer
+  val testLayer = ZLayer.make[OrderRepository](
+    OrderRepositoryLive.layer,
+    PostgresContainer.connectionPoolConfigLayer,
+    PostgresContainer.make()
+  )
 
   val order = Order(UUID.randomUUID(), UUID.randomUUID(), LocalDate.now())
 
   def spec = 
     suite("order repository test with postgres test container")(
-      testM("count all orders") {
+      test("count all orders") {
         for {
           count <- OrderRepository.countAllOrders()
         } yield assert(count)(equalTo(25))
       },
-      testM("insert new order") {
+      test("insert new order") {
         for {
           _ <- OrderRepository.add(order)
           count <- OrderRepository.countAllOrders()

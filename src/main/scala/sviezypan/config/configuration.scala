@@ -20,10 +20,9 @@ object configuration {
       int("port").default(8090)
     }.to[ServerConfig]
 
-    val layer = IO
-      .fromEither(TypesafeConfigSource.fromTypesafeConfig(ConfigFactory.defaultApplication()))
+    val layer = ZIO.attempt(TypesafeConfigSource.fromTypesafeConfig(ZIO.attempt(ConfigFactory.defaultApplication())))
       .map(source => serverConfigDescription from source)
-      .flatMap(config => ZIO.fromEither(read(config)))
+      .flatMap(config => read(config))
       .mapError(e => DomainError.ConfigError(e))
       .toLayer
   }
@@ -43,16 +42,15 @@ object configuration {
 
     val dbConfigDescriptor = nested("db-config")(descriptor[DbConfig])
 
-    val layer = IO
-      .fromEither(TypesafeConfigSource.fromTypesafeConfig(ConfigFactory.defaultApplication()))
+    val layer = ZIO.attempt(TypesafeConfigSource.fromTypesafeConfig(ZIO.attempt(ConfigFactory.defaultApplication())))
       .map(source => dbConfigDescriptor from source)
-      .flatMap(config => ZIO.fromEither(read(config)))
+      .flatMap(config => read(config))
       .mapError(e => 
           DomainError.ConfigError(e) 
       )
       .toLayer
 
-    val connectionPoolConfig: ZLayer[Has[DbConfig], Throwable, Has[ConnectionPoolConfig]] =
+    val connectionPoolConfig: ZLayer[DbConfig, Throwable, ConnectionPoolConfig] =
       (for {
         serverConfig <- ZIO.service[DbConfig]
       } yield (ConnectionPoolConfig(

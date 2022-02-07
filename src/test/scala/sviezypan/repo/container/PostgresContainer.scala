@@ -11,8 +11,8 @@ object PostgresContainer {
   def make(
       imageName: String = "postgres:alpine"
     ) =
-    ZManaged.make {
-      zio.blocking.effectBlocking {
+    ZManaged.acquireReleaseWith {
+      ZIO.attemptBlocking {
         val c = new PostgreSQLContainer(
           dockerImageNameOverride = Option(imageName).map(DockerImageName.parse)
         ).configure { a =>
@@ -23,10 +23,10 @@ object PostgresContainer {
         c
       }
     } { container =>
-      zio.blocking.effectBlocking(container.stop()).orDie
+      ZIO.attemptBlocking(container.stop()).orDie
     }.toLayer
 
-  val connectionPoolConfigLayer: ZLayer[Has[PostgreSQLContainer], Throwable, Has[ConnectionPoolConfig]] = {
+  val connectionPoolConfigLayer: ZLayer[PostgreSQLContainer, Throwable, ConnectionPoolConfig] = {
     def connProperties(user: String, password: String): Properties = {
       val props = new Properties
       props.setProperty("user", user)

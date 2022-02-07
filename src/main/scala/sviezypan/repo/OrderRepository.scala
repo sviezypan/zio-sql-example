@@ -23,25 +23,28 @@ trait OrderRepository {
 }
 
 object OrderRepository {
-  def findAll(): ZStream[Has[OrderRepository], RepositoryError, Order] =
+  def findAll(): ZStream[OrderRepository, RepositoryError, Order] =
     ZStream.serviceWithStream[OrderRepository](_.findAll())
 
-  def findAllWithNames(): ZStream[Has[OrderRepository], RepositoryError, CustomerWithOrderDate] =
+  def findAllWithNames()
+      : ZStream[OrderRepository, RepositoryError, CustomerWithOrderDate] =
     ZStream.serviceWithStream[OrderRepository](_.findAllWithNames())
 
-  def add(order: Order): ZIO[Has[OrderRepository], RepositoryError, Int] =
-    ZIO.serviceWith[OrderRepository](_.add(order))
+  def add(order: Order): ZIO[OrderRepository, RepositoryError, Int] =
+    ZIO.serviceWithZIO[OrderRepository](_.add(order))
 
-  def addAll(orders: List[Order]): ZIO[Has[OrderRepository], RepositoryError, Int] =
-    ZIO.serviceWith[OrderRepository](_.addAll(orders))
+  def addAll(orders: List[Order]): ZIO[OrderRepository, RepositoryError, Int] =
+    ZIO.serviceWithZIO[OrderRepository](_.addAll(orders))
 
-  def findOrderById(id: java.util.UUID): ZIO[Has[OrderRepository], RepositoryError, Order] =
-    ZIO.serviceWith[OrderRepository](_.findOrderById(id))
+  def findOrderById(
+      id: java.util.UUID
+  ): ZIO[OrderRepository, RepositoryError, Order] =
+    ZIO.serviceWithZIO[OrderRepository](_.findOrderById(id))
 
-  def countAllOrders(): ZIO[Has[OrderRepository], RepositoryError, Int] =
-    ZIO.serviceWith[OrderRepository](_.countAllOrders())
+  def countAllOrders(): ZIO[OrderRepository, RepositoryError, Int] =
+    ZIO.serviceWithZIO[OrderRepository](_.countAllOrders())
 
-  def removeAll(): ZIO[Has[OrderRepository], RepositoryError, Int] =
-    ZIO.serviceWith[OrderRepository](_.removeAll())
+  def removeAll(): ZIO[OrderRepository, RepositoryError, Int] =
+    ZIO.serviceWithZIO[OrderRepository](_.removeAll())
 
 }
