@@ -1,7 +1,7 @@
-val zioSqlVersion = "0.0.0+1004-0bda0210+20220207-1412-SNAPSHOT"
+val zioSqlVersion = "0.0.1"
 
 val zioVersion = "2.0.0-RC2"
-val zioHttpVersion = "2.0.0-RC2"
+val zioHttpVersion = "2.0.0-RC4"
 val zioJsonVersion = "0.3.0-RC3"
 val zioConfigVersion = "3.0.0-RC2"
 
@@ -19,8 +19,6 @@ lazy val root = (project in file("."))
         scalaVersion := "2.13.7"
       )
     ),
-    // resolvers +=
-    //   "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
     name := "zio-sql-example",
     libraryDependencies ++= Seq(
       //core
@@ -45,7 +43,6 @@ lazy val root = (project in file("."))
       "org.testcontainers" % "database-commons" % testcontainersVersion % Test,
       "org.testcontainers" % "postgresql" % testcontainersVersion % Test,
       "org.testcontainers" % "jdbc" % testcontainersVersion % Test,
-      "dev.zio" %% "zio-test-magnolia" % zioVersion % Test
     ),
     testFrameworks := Seq(new TestFramework("zio.test.sbt.ZTestFramework"))
   )

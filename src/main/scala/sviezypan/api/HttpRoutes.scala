@@ -68,10 +68,10 @@ object HttpRoutes {
 
       case req @ Method.POST -> !! / "customers" =>
         (for {
-          body <- req.getBodyAsString
+          body <- req.bodyAsString
             .flatMap(request => ZIO.fromEither(request.fromJson[Customer]))
             .tapError(_ =>
-              ZIO.logInfo(s"Unparseable body ${req.getBodyAsString}")
+              ZIO.logInfo(s"Unparseable body ${req.bodyAsString}")
             )
           _ <- CustomerRepository.create(body)
         } yield ()).either.map {
@@ -90,10 +90,10 @@ object HttpRoutes {
 
       case req @ Method.POST -> !! / "orders" =>
         (for {
-          body <- req.getBodyAsString
+          body <- req.bodyAsString
             .flatMap(request => ZIO.fromEither(request.fromJson[Order]))
             .tapError(_ =>
-              ZIO.logInfo(s"Unparseable body ${req.getBodyAsString}")
+              ZIO.logInfo(s"Unparseable body ${req.bodyAsString}")
             )
           _ <- OrderRepository.add(body)
         } yield ()).either.map {

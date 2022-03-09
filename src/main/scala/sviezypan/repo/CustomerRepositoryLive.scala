@@ -11,23 +11,21 @@ import sviezypan.domain.{
 import sviezypan.domain.DomainError.RepositoryError
 
 import java.util.UUID
-import zio.sql.ConnectionPoolConfig
 
 final class CustomerRepositoryLive(
-    poolConfig: ConnectionPoolConfig
+    pool: ConnectionPool
 ) extends CustomerRepository
     with TableModel {
-
-  lazy val poolConfigLayer = ZLayer.succeed(poolConfig)
 
   lazy val driverLayer = ZLayer
     .make[SqlDriver](
       SqlDriver.live,
-      ConnectionPool.live,
-      poolConfigLayer,
-      Clock.live
+      ZLayer.succeed(pool)
     )
-    .orDie
+
+  // def findAll(): Stream[Throwable, Customer] = ???
+
+  // def findById(id: UUID): Task[Customer] = ???
 
   def findAll(): ZStream[Any, RepositoryError, Customer] = {
     val selectAll =
@@ -143,6 +141,6 @@ final class CustomerRepositoryLive(
 }
 
 object CustomerRepositoryLive {
-  val layer: ZLayer[ConnectionPoolConfig, Throwable, CustomerRepository] =
+  val layer: ZLayer[ConnectionPool, Throwable, CustomerRepository] =
     (new CustomerRepositoryLive(_)).toLayer
 }

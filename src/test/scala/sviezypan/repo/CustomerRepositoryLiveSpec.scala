@@ -9,6 +9,8 @@ import java.util.UUID
 import java.time.LocalDate
 import zio.ZLayer
 import sviezypan.repo.postgresql.PostgresContainer
+import zio.sql.ConnectionPool
+import zio.Clock
 
 object CustomerRepositoryLiveSpec extends DefaultRunnableSpec {
 
@@ -22,6 +24,8 @@ object CustomerRepositoryLiveSpec extends DefaultRunnableSpec {
   val testLayer = ZLayer.make[CustomerRepository](
     CustomerRepositoryLive.layer,
     PostgresContainer.connectionPoolConfigLayer,
+    ConnectionPool.live,
+    Clock.live,
     PostgresContainer.make()
   )
 

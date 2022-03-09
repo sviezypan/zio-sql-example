@@ -7,24 +7,18 @@ import sviezypan.domain.{CustomerWithOrderDate, Order}
 
 import java.util.UUID
 import java.time.LocalDate
-import zio.sql.ConnectionPoolConfig
 import zio.sql.ConnectionPool
 
 final class OrderRepositoryLive(
-    poolConfig: ConnectionPoolConfig
+    connectionPool: ConnectionPool
 ) extends OrderRepository
     with TableModel {
-
-  lazy val poolConfigLayer = ZLayer.succeed(poolConfig)
 
   lazy val driverLayer = ZLayer
     .make[SqlDriver](
       SqlDriver.live,
-      ConnectionPool.live,
-      poolConfigLayer,
-      Clock.live
+      ZLayer.succeed(connectionPool)
     )
-    .orDie
 
   def findOrderById(id: UUID): IO[RepositoryError, Order] = {
     val query = select(orderId ++ fkCustomerId ++ orderDate)
@@ -94,6 +88,6 @@ final class OrderRepositoryLive(
 }
 
 object OrderRepositoryLive {
-  val layer: ZLayer[ConnectionPoolConfig, Nothing, OrderRepository] =
+  val layer: ZLayer[ConnectionPool, Nothing, OrderRepository] =
     (new OrderRepositoryLive(_)).toLayer
 }
