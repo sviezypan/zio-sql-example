@@ -1,17 +1,18 @@
 ## ZIO-SQL example application
 
 # Introduction
-This repo contains a very simple example application demonstrating how to use zio-sql to communicate with SQL database of your choice - I am using postgresql. 
+This repo contains a simple example application demonstrating how to use ZIO SQL to communicate with SQL database of your choice - I am using postgresql. 
 
-App exposes an http APIs that query and modify postgres db through `CustomerRepository` and `OrderRepository`. Database contains `customers` and `orders` tables. Db schema and table content are loaded from `src/main/resources/init.sql` script.
+It's focused on ZIO SQL but contains also ZIO 2.0 best practices, ZIO HTTP endpoints and some other libraries from the ecosystem.
+
+App exposes an http APIs that query and modify postgres db through `CustomerRepository`,  `OrderRepository` and `QueryService`. Database contains `customers` and `orders` tables. Db schema and table content are loaded from `src/main/resources/init.sql` script.
+
 Examples in repo include:
 1. selects
-2. subselects
+2. inserts
+3. deletes
 4. joins
-3. inserts
-4. deletes
-
-Other than ZIO-SQL I am using zio-http, zio-config, zio-json and other libraries of the ecosystem while using the best practices regarding ZLayers.
+5. subselects
 
 # To launch
 1. clone this repo
@@ -49,4 +50,4 @@ Other than ZIO-SQL I am using zio-http, zio-config, zio-json and other libraries
 ```
 
 ## TODO
-1. add `transactions` example
+1. add transactions example with `ZTransaction` datatype

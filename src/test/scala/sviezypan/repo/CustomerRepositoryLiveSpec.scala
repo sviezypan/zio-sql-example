@@ -18,18 +18,18 @@ object CustomerRepositoryLiveSpec extends DefaultRunnableSpec {
 
   val customers = List(
     Customer(customerId1, "Peter", "Schwarz", false, LocalDate.now()),
-    Customer(UUID.randomUUID(), "Laszlo", "Wider", true, LocalDate.now()),
+    Customer(UUID.randomUUID(), "Laszlo", "Wider", true, LocalDate.now())
   )
 
   val testLayer = ZLayer.make[CustomerRepository](
-    CustomerRepositoryLive.layer,
+    CustomerRepositoryImpl.live,
     PostgresContainer.connectionPoolConfigLayer,
     ConnectionPool.live,
     Clock.live,
     PostgresContainer.make()
   )
 
-  override def spec = 
+  override def spec =
     suite("customer repository test with postgres test container")(
       test("count all customers") {
         for {
@@ -38,7 +38,7 @@ object CustomerRepositoryLiveSpec extends DefaultRunnableSpec {
       },
       test("insert two new customers") {
         for {
-          oneRow <- CustomerRepository.create(customers)
+          oneRow <- CustomerRepository.add(customers)
           count <- CustomerRepository.findAll().runCount
         } yield assert(oneRow)(equalTo(2)) && assert(count)(equalTo(7L))
       },
@@ -48,4 +48,4 @@ object CustomerRepositoryLiveSpec extends DefaultRunnableSpec {
         } yield assert(customer.fname)(equalTo("Peter"))
       }
     ).provideCustomLayerShared(testLayer.orDie) @@ sequential
-  }
+}

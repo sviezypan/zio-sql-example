@@ -1,12 +1,8 @@
 package sviezypan.repo
 
 import zio.stream._
-import sviezypan.domain.{
-  Customer,
-  CustomerWithOrderDate,
-  CustomerWithOrderNumber
-}
-import sviezypan.domain.DomainError.RepositoryError
+import sviezypan.domain._
+import sviezypan.domain.AppError.RepositoryError
 import zio._
 
 import java.util.UUID
@@ -17,15 +13,9 @@ trait CustomerRepository {
 
   def findById(id: UUID): ZIO[Any, RepositoryError, Customer]
 
-  def create(customer: Customer): ZIO[Any, RepositoryError, Unit]
+  def add(customer: Customer): ZIO[Any, RepositoryError, Unit]
 
-  def create(customer: List[Customer]): ZIO[Any, RepositoryError, Int]
-
-  def findAllWithLatestOrder()
-      : ZStream[Any, RepositoryError, CustomerWithOrderDate]
-
-  def findAllWithCountOfOrders()
-      : ZStream[Any, RepositoryError, CustomerWithOrderNumber]
+  def add(customer: List[Customer]): ZIO[Any, RepositoryError, Int]
 
   def removeAll(): ZIO[Any, RepositoryError, Int]
 }
@@ -37,23 +27,15 @@ object CustomerRepository {
   def findById(id: UUID): ZIO[CustomerRepository, RepositoryError, Customer] =
     ZIO.serviceWithZIO[CustomerRepository](_.findById(id))
 
-  def create(
+  def add(
       customer: Customer
   ): ZIO[CustomerRepository, RepositoryError, Unit] =
-    ZIO.serviceWithZIO[CustomerRepository](_.create(customer))
+    ZIO.serviceWithZIO[CustomerRepository](_.add(customer))
 
-  def create(
+  def add(
       customer: List[Customer]
   ): ZIO[CustomerRepository, RepositoryError, Int] =
-    ZIO.serviceWithZIO[CustomerRepository](_.create(customer))
-
-  def findAllWithLatestOrder()
-      : ZStream[CustomerRepository, RepositoryError, CustomerWithOrderDate] =
-    ZStream.serviceWithStream[CustomerRepository](_.findAllWithLatestOrder())
-
-  def findAllWithCountOfOrders()
-      : ZStream[CustomerRepository, RepositoryError, CustomerWithOrderNumber] =
-    ZStream.serviceWithStream[CustomerRepository](_.findAllWithCountOfOrders())
+    ZIO.serviceWithZIO[CustomerRepository](_.add(customer))
 
   def removeAll(): ZIO[CustomerRepository, RepositoryError, Int] =
     ZIO.serviceWithZIO[CustomerRepository](_.removeAll())

@@ -4,10 +4,11 @@ import zhttp.service.server.ServerChannelFactory
 import zhttp.service.{EventLoopGroup, Server}
 import zio._
 import zio.config._
-import sviezypan.config.configuration._
+import sviezypan.config._
 import sviezypan.api.HttpRoutes
 import sviezypan.healthcheck.Healthcheck
-import sviezypan.repo.{CustomerRepositoryLive, OrderRepositoryLive}
+import sviezypan.repo._
+import sviezypan.service.QueryServiceImpl
 import zio.sql.ConnectionPool
 
 object Main extends ZIOAppDefault {
@@ -26,8 +27,9 @@ object Main extends ZIOAppDefault {
         ServerConfig.layer,
         ServerChannelFactory.auto,
         EventLoopGroup.auto(),
-        OrderRepositoryLive.layer,
-        CustomerRepositoryLive.layer,
+        OrderRepositoryImpl.live,
+        CustomerRepositoryImpl.live,
+        QueryServiceImpl.live,
         DbConfig.layer,
         ConnectionPool.live,
         Clock.live,

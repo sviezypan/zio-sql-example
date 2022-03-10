@@ -1,48 +1,44 @@
 package sviezypan.repo
 
-import sviezypan.domain.DomainError.RepositoryError
-import sviezypan.domain.{CustomerWithOrderDate, Order}
+import sviezypan.domain.AppError.RepositoryError
+import sviezypan.domain._
 import zio._
 import zio.stream._
+import java.util.UUID
 
 trait OrderRepository {
 
-  def findAll(): ZStream[Any, RepositoryError, Order]
+  def findById(id: UUID): IO[RepositoryError, Order]
 
-  def findAllWithNames(): ZStream[Any, RepositoryError, CustomerWithOrderDate]
+  def findAll(): ZStream[Any, RepositoryError, Order]
 
   def add(order: Order): IO[RepositoryError, Int]
 
-  def addAll(orders: List[Order]): IO[RepositoryError, Int]
+  def add(orders: List[Order]): IO[RepositoryError, Int]
 
-  def findOrderById(id: java.util.UUID): IO[RepositoryError, Order]
-
-  def countAllOrders(): IO[RepositoryError, Int]
+  def countAll(): IO[RepositoryError, Int]
 
   def removeAll(): ZIO[Any, RepositoryError, Int]
 }
 
 object OrderRepository {
+
+  def findById(
+      id: java.util.UUID
+  ): ZIO[OrderRepository, RepositoryError, Order] =
+    ZIO.serviceWithZIO[OrderRepository](_.findById(id))
+
   def findAll(): ZStream[OrderRepository, RepositoryError, Order] =
     ZStream.serviceWithStream[OrderRepository](_.findAll())
-
-  def findAllWithNames()
-      : ZStream[OrderRepository, RepositoryError, CustomerWithOrderDate] =
-    ZStream.serviceWithStream[OrderRepository](_.findAllWithNames())
 
   def add(order: Order): ZIO[OrderRepository, RepositoryError, Int] =
     ZIO.serviceWithZIO[OrderRepository](_.add(order))
 
-  def addAll(orders: List[Order]): ZIO[OrderRepository, RepositoryError, Int] =
-    ZIO.serviceWithZIO[OrderRepository](_.addAll(orders))
+  def add(orders: List[Order]): ZIO[OrderRepository, RepositoryError, Int] =
+    ZIO.serviceWithZIO[OrderRepository](_.add(orders))
 
-  def findOrderById(
-      id: java.util.UUID
-  ): ZIO[OrderRepository, RepositoryError, Order] =
-    ZIO.serviceWithZIO[OrderRepository](_.findOrderById(id))
-
-  def countAllOrders(): ZIO[OrderRepository, RepositoryError, Int] =
-    ZIO.serviceWithZIO[OrderRepository](_.countAllOrders())
+  def countAll(): ZIO[OrderRepository, RepositoryError, Int] =
+    ZIO.serviceWithZIO[OrderRepository](_.countAll())
 
   def removeAll(): ZIO[OrderRepository, RepositoryError, Int] =
     ZIO.serviceWithZIO[OrderRepository](_.removeAll())

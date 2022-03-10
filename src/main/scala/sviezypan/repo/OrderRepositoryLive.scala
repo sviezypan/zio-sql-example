@@ -2,17 +2,17 @@ package sviezypan.repo
 
 import zio._
 import zio.stream._
-import sviezypan.domain.DomainError.RepositoryError
-import sviezypan.domain.{CustomerWithOrderDate, Order}
+import sviezypan.domain.AppError.RepositoryError
+import sviezypan.domain._
 
 import java.util.UUID
 import java.time.LocalDate
 import zio.sql.ConnectionPool
 
-final class OrderRepositoryLive(
+final class OrderRepositoryImpl(
     connectionPool: ConnectionPool
 ) extends OrderRepository
-    with TableModel {
+    with PostgresTableDescription {
 
   lazy val driverLayer = ZLayer
     .make[SqlDriver](
@@ -20,7 +20,7 @@ final class OrderRepositoryLive(
       ZLayer.succeed(connectionPool)
     )
 
-  def findOrderById(id: UUID): IO[RepositoryError, Order] = {
+  override def findById(id: UUID): IO[RepositoryError, Order] = {
     val query = select(orderId ++ fkCustomerId ++ orderDate)
       .from(orders)
       .where(orderId === id)
@@ -30,7 +30,7 @@ final class OrderRepositoryLive(
         .findFirst(driverLayer, id)
   }
 
-  def findAll(): ZStream[Any, RepositoryError, Order] = {
+  override def findAll(): ZStream[Any, RepositoryError, Order] = {
     val query = select(orderId ++ fkCustomerId ++ orderDate)
       .from(orders)
 
@@ -38,28 +38,13 @@ final class OrderRepositoryLive(
       .provideDriver(driverLayer)
   }
 
-  def findAllWithNames()
-      : ZStream[Any, RepositoryError, CustomerWithOrderDate] = {
-    val query = select(fName ++ lName ++ orderDate)
-      .from(customers.join(orders).on(fkCustomerId === customerId))
-
-    ZStream.fromZIO(
-      ZIO.logInfo(s"Query to execute findAllWithNames is ${renderRead(query)}")
-    ) *>
-      execute(
-        query
-          .to((CustomerWithOrderDate.apply _).tupled)
-      )
-        .provideDriver(driverLayer)
-  }
-
-  def add(order: Order): IO[RepositoryError, Int] =
+  override def add(order: Order): IO[RepositoryError, Int] =
     insertOrder(Seq((order.id, order.customerId, order.date)))
 
-  def addAll(orders: List[Order]): IO[RepositoryError, Int] =
+  override def add(orders: List[Order]): IO[RepositoryError, Int] =
     insertOrder(orders.map(o => (o.id, o.customerId, o.date)))
 
-  def countAllOrders(): IO[RepositoryError, Int] = {
+  override def countAll(): IO[RepositoryError, Int] = {
     import AggregationDef._
 
     val query = select(Count(orderId)).from(orders)
@@ -71,7 +56,7 @@ final class OrderRepositoryLive(
         .map(_.map(_.toInt).head)
   }
 
-  def removeAll(): ZIO[Any, RepositoryError, Int] =
+  override def removeAll(): ZIO[Any, RepositoryError, Int] =
     execute(deleteFrom(orders))
       .provideAndLog(driverLayer)
 
@@ -87,7 +72,7 @@ final class OrderRepositoryLive(
   }
 }
 
-object OrderRepositoryLive {
-  val layer: ZLayer[ConnectionPool, Nothing, OrderRepository] =
-    (new OrderRepositoryLive(_)).toLayer
+object OrderRepositoryImpl {
+  val live: ZLayer[ConnectionPool, Nothing, OrderRepository] =
+    (new OrderRepositoryImpl(_)).toLayer
 }

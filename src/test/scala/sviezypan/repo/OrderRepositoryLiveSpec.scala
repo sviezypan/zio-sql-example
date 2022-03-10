@@ -13,7 +13,7 @@ import zio.sql.ConnectionPool
 object OrderRepositoryLiveSpec extends DefaultRunnableSpec {
 
   val testLayer = ZLayer.make[OrderRepository](
-    OrderRepositoryLive.layer,
+    OrderRepositoryImpl.live,
     PostgresContainer.connectionPoolConfigLayer,
     ConnectionPool.live,
     Clock.live,
@@ -22,17 +22,17 @@ object OrderRepositoryLiveSpec extends DefaultRunnableSpec {
 
   val order = Order(UUID.randomUUID(), UUID.randomUUID(), LocalDate.now())
 
-  def spec = 
+  def spec =
     suite("order repository test with postgres test container")(
       test("count all orders") {
         for {
-          count <- OrderRepository.countAllOrders()
+          count <- OrderRepository.countAll()
         } yield assert(count)(equalTo(25))
       },
       test("insert new order") {
         for {
           _ <- OrderRepository.add(order)
-          count <- OrderRepository.countAllOrders()
+          count <- OrderRepository.countAll()
         } yield assert(count)(equalTo(26))
       }
     ).provideCustomLayerShared(testLayer.orDie) @@ sequential

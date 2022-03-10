@@ -3,9 +3,9 @@ package sviezypan.repo
 import zio.sql.postgresql.PostgresModule
 import zio.stream._
 import zio._
-import sviezypan.domain.DomainError.RepositoryError
+import sviezypan.domain.AppError.RepositoryError
 
-trait TableModel extends PostgresModule {
+trait PostgresTableDescription extends PostgresModule {
 
   import ColumnSet._
 
