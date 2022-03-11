@@ -28,5 +28,4 @@ object QueryService {
   def findAllWithNames()
       : ZStream[QueryService, RepositoryError, CustomerWithOrderDate] =
     ZStream.serviceWithStream[QueryService](_.findAllWithNames())
-
 }
