@@ -80,5 +80,5 @@ final class CustomerRepositoryImpl(
 
 object CustomerRepositoryImpl {
   val live: ZLayer[ConnectionPool, Throwable, CustomerRepository] =
-    (new CustomerRepositoryImpl(_)).toLayer
+    ZLayer.fromFunction(new CustomerRepositoryImpl(_))
 }

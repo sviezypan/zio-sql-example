@@ -1,6 +1,6 @@
 package sviezypan.repo
 
-import zio._
+import zio.ZLayer
 import zio.test._
 import zio.test.Assertion._
 import sviezypan.domain.Order
@@ -10,14 +10,13 @@ import java.time.LocalDate
 import sviezypan.repo.postgresql.PostgresContainer
 import zio.sql.ConnectionPool
 
-object OrderRepositoryLiveSpec extends DefaultRunnableSpec {
+object OrderRepositoryLiveSpec extends ZIOSpecDefault {
 
   val testLayer = ZLayer.make[OrderRepository](
     OrderRepositoryImpl.live,
     PostgresContainer.connectionPoolConfigLayer,
     ConnectionPool.live,
-    Clock.live,
-    PostgresContainer.make()
+    PostgresContainer.createContainer
   )
 
   val order = Order(UUID.randomUUID(), UUID.randomUUID(), LocalDate.now())

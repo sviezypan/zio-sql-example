@@ -91,5 +91,5 @@ final class QueryServiceImpl(
 
 object QueryServiceImpl {
   val live: ZLayer[ConnectionPool, Nothing, QueryService] =
-    (new QueryServiceImpl(_)).toLayer
+    ZLayer.fromFunction(new QueryServiceImpl(_))
 }

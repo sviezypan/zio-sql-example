@@ -10,9 +10,8 @@ import java.time.LocalDate
 import zio.ZLayer
 import sviezypan.repo.postgresql.PostgresContainer
 import zio.sql.ConnectionPool
-import zio.Clock
 
-object CustomerRepositoryLiveSpec extends DefaultRunnableSpec {
+object CustomerRepositoryLiveSpec extends ZIOSpecDefault {
 
   val customerId1 = UUID.randomUUID()
 
@@ -25,8 +24,7 @@ object CustomerRepositoryLiveSpec extends DefaultRunnableSpec {
     CustomerRepositoryImpl.live,
     PostgresContainer.connectionPoolConfigLayer,
     ConnectionPool.live,
-    Clock.live,
-    PostgresContainer.make()
+    PostgresContainer.createContainer
   )
 
   override def spec =

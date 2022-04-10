@@ -18,7 +18,7 @@ object ServerConfig {
     int("port").default(8090)
   }.to[ServerConfig]
 
-  val layer = ZIO
+  val layer = ZLayer(ZIO
     .attempt(
       TypesafeConfigSource.fromTypesafeConfig(
         ZIO.attempt(ConfigFactory.defaultApplication())
@@ -26,8 +26,7 @@ object ServerConfig {
     )
     .map(source => serverConfigDescription from source)
     .flatMap(config => read(config))
-    .orDie
-    .toLayer
+    .orDie)
 }
 
 final case class DbConfig(
@@ -45,7 +44,7 @@ object DbConfig {
 
   val dbConfigDescriptor = nested("db-config")(descriptor[DbConfig])
 
-  val layer = ZIO
+  val layer = ZLayer(ZIO
     .attempt(
       TypesafeConfigSource.fromTypesafeConfig(
         ZIO.attempt(ConfigFactory.defaultApplication())
@@ -53,16 +52,15 @@ object DbConfig {
     )
     .map(source => dbConfigDescriptor from source)
     .flatMap(config => read(config))
-    .orDie
-    .toLayer
+    .orDie)
 
   val connectionPoolConfig: ZLayer[DbConfig, Throwable, ConnectionPoolConfig] =
-    (for {
+    ZLayer(for {
       serverConfig <- ZIO.service[DbConfig]
     } yield (ConnectionPoolConfig(
       serverConfig.url,
       connProperties(serverConfig.user, serverConfig.password)
-    ))).toLayer
+    )))
 
   private def connProperties(user: String, password: String): Properties = {
     val props = new Properties

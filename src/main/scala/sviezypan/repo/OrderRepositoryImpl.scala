@@ -74,5 +74,5 @@ final class OrderRepositoryImpl(
 
 object OrderRepositoryImpl {
   val live: ZLayer[ConnectionPool, Nothing, OrderRepository] =
-    (new OrderRepositoryImpl(_)).toLayer
+    ZLayer.fromFunction(new OrderRepositoryImpl(_))
 }

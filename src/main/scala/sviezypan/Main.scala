@@ -32,7 +32,6 @@ object Main extends ZIOAppDefault {
         QueryServiceImpl.live,
         DbConfig.layer,
         ConnectionPool.live,
-        Clock.live,
         DbConfig.connectionPoolConfig
       )
 }
