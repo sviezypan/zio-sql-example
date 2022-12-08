@@ -43,7 +43,7 @@ object CustomerRepositoryLiveSpec extends ZIOSpecDefault {
       test("get inserted customer") {
         for {
           customer <- CustomerRepository.findById(customerId1)
-        } yield assert(customer.fname)(equalTo("Peter"))
+        } yield assert(customer.firstName)(equalTo("Peter"))
       }
-    ).provideCustomLayerShared(testLayer.orDie) @@ sequential
+    ).provideLayerShared(testLayer.orDie) @@ sequential
 }

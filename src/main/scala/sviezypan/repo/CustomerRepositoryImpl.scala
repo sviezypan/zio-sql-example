@@ -21,7 +21,7 @@ final class CustomerRepositoryImpl(
 
   override def findAll(): ZStream[Any, RepositoryError, Customer] = {
     val selectAll =
-      select(customerId ++ fName ++ lName ++ verified ++ dob).from(customers)
+      select(customerId, fName, lName, verified, dob).from(customers)
 
     ZStream.fromZIO(
       ZIO.logInfo(s"Query to execute findAll is ${renderRead(selectAll)}")
@@ -31,7 +31,7 @@ final class CustomerRepositoryImpl(
   }
 
   override def findById(id: UUID): ZIO[Any, RepositoryError, Customer] = {
-    val selectAll = select(customerId ++ fName ++ lName ++ verified ++ dob)
+    val selectAll = select(customerId, fName, lName, verified, dob)
       .from(customers)
       .where(customerId === id)
 
@@ -42,13 +42,13 @@ final class CustomerRepositoryImpl(
 
   override def add(customer: Customer): ZIO[Any, RepositoryError, Unit] = {
     val query =
-      insertInto(customers)(customerId ++ dob ++ fName ++ lName ++ verified)
+      insertInto(customers)(customerId, dob, fName, lName, verified)
         .values(
           (
             customer.id,
-            customer.dateOfBirth,
-            customer.fname,
-            customer.lname,
+            customer.dob,
+            customer.firstName,
+            customer.lastName,
             customer.verified
           )
         )
@@ -61,10 +61,10 @@ final class CustomerRepositoryImpl(
 
   override def add(customer: List[Customer]): ZIO[Any, RepositoryError, Int] = {
     val data =
-      customer.map(c => (c.id, c.dateOfBirth, c.fname, c.lname, c.verified))
+      customer.map(c => (c.id, c.dob, c.firstName, c.lastName, c.verified))
 
     val query =
-      insertInto(customers)(customerId ++ dob ++ fName ++ lName ++ verified)
+      insertInto(customers)(customerId, dob, fName, lName, verified)
         .values(data)
 
     ZIO.logInfo(s"Query to insert customers is ${renderInsert(query)}") *>

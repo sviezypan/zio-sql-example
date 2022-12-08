@@ -6,15 +6,15 @@ import java.time.LocalDate
 final case class Order(
     id: UUID,
     customerId: UUID,
-    date: LocalDate
+    orderDate: LocalDate
 )
 
 final case class Customer(
     id: UUID,
-    fname: String,
-    lname: String,
+    firstName: String,
+    lastName: String,
     verified: Boolean,
-    dateOfBirth: LocalDate
+    dob: LocalDate
 )
 
 final case class Product(

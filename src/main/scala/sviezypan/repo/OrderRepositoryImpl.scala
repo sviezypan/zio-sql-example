@@ -21,7 +21,7 @@ final class OrderRepositoryImpl(
     )
 
   override def findById(id: UUID): IO[RepositoryError, Order] = {
-    val query = select(orderId ++ fkCustomerId ++ orderDate)
+    val query = select(orderId, fkCustomerId, orderDate)
       .from(orders)
       .where(orderId === id)
 
@@ -31,7 +31,7 @@ final class OrderRepositoryImpl(
   }
 
   override def findAll(): ZStream[Any, RepositoryError, Order] = {
-    val query = select(orderId ++ fkCustomerId ++ orderDate)
+    val query = select(orderId, fkCustomerId, orderDate)
       .from(orders)
 
     execute(query.to((Order.apply _).tupled))
@@ -39,10 +39,10 @@ final class OrderRepositoryImpl(
   }
 
   override def add(order: Order): IO[RepositoryError, Int] =
-    insertOrder(Seq((order.id, order.customerId, order.date)))
+    insertOrder(Seq((order.id, order.customerId, order.orderDate)))
 
   override def add(orders: List[Order]): IO[RepositoryError, Int] =
-    insertOrder(orders.map(o => (o.id, o.customerId, o.date)))
+    insertOrder(orders.map(o => (o.id, o.customerId, o.orderDate)))
 
   override def countAll(): IO[RepositoryError, Int] = {
     import AggregationDef._
@@ -63,7 +63,7 @@ final class OrderRepositoryImpl(
   private def insertOrder(
       data: Seq[(UUID, UUID, LocalDate)]
   ): IO[RepositoryError, Int] = {
-    val query = insertInto(orders)(orderId ++ fkCustomerId ++ orderDate)
+    val query = insertInto(orders)(orderId, fkCustomerId, orderDate)
       .values(data)
 
     ZIO.logInfo(s"Insert order query is ${renderInsert(query)}") *>

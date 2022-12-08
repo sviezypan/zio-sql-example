@@ -1,25 +1,23 @@
 package sviezypan.repo
 
-import zio.sql.postgresql.PostgresModule
+import zio.sql.postgresql.PostgresJdbcModule
 import zio.stream._
 import zio._
 import sviezypan.domain.AppError.RepositoryError
+import zio.schema.DeriveSchema
+import sviezypan.domain._
 
-trait PostgresTableDescription extends PostgresModule {
+trait PostgresTableDescription extends PostgresJdbcModule {
 
-  import ColumnSet._
+  implicit val customerSchema = DeriveSchema.gen[Customer]
+  implicit val orderSchema = DeriveSchema.gen[Order]
 
-  val customers =
-    (uuid("id") ++ string("first_name") ++ string("last_name") ++ boolean(
-      "verified"
-    ) ++ localDate("dob"))
-      .table("customers")
+  val customers = defineTableSmart[Customer]
 
   val (customerId, fName, lName, verified, dob) =
     customers.columns
 
-  val orders = (uuid("id") ++ uuid("customer_id") ++ localDate("order_date"))
-    .table("orders")
+  val orders = defineTableSmart[Order]
 
   val (orderId, fkCustomerId, orderDate) = orders.columns
 
