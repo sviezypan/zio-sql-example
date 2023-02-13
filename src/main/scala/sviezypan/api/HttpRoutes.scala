@@ -1,20 +1,21 @@
 package sviezypan.api
 
-import zhttp.http._
+import zio.http._
 import zio._
 import zio.json._
 import sviezypan.domain._
 import sviezypan.repo._
 import sviezypan.service._
 import sviezypan.api.Protocol._
+import zio.http.model._
 
 object HttpRoutes {
 
   val app: HttpApp[
     OrderRepository with CustomerRepository with QueryService,
-    Throwable
+    Response
   ] =
-    Http.collectZIO {
+    Http.collectZIO[Request] {
       case Method.GET -> !! / "orders" / "count" =>
         OrderRepository
           .countAll()
@@ -22,7 +23,7 @@ object HttpRoutes {
           .map {
             case Right(count) =>
               Response.json(s"{\"count\": \"${count.toString()}\"}")
-            case Left(_) => Response.status(Status.INTERNAL_SERVER_ERROR)
+            case Left(_) => Response.status(Status.InternalServerError)
           }
 
       case Method.GET -> !! / "customers" / "orders" / "join" =>
@@ -33,7 +34,7 @@ object HttpRoutes {
           .either
           .map {
             case Right(customers) => Response.json(customers.toJson)
-            case Left(_) => Response.status(Status.INTERNAL_SERVER_ERROR)
+            case Left(_) => Response.status(Status.InternalServerError)
           }
 
       case Method.GET -> !! / "customers" / "orders" / "latest-date" =>
@@ -44,7 +45,7 @@ object HttpRoutes {
           .either
           .map {
             case Right(customers) => Response.json(customers.toJson)
-            case Left(_) => Response.status(Status.INTERNAL_SERVER_ERROR)
+            case Left(_) => Response.status(Status.InternalServerError)
           }
 
       case Method.GET -> !! / "customers" / "orders" / "count" =>
@@ -55,24 +56,32 @@ object HttpRoutes {
           .either
           .map {
             case Right(customers) => Response.json(customers.toJson)
-            case Left(_) => Response.status(Status.INTERNAL_SERVER_ERROR)
+            case Left(_) => Response.status(Status.InternalServerError)
           }
 
       case Method.GET -> !! / "customers" =>
         CustomerRepository
           .findAll()
           .runCollect
-          .map(ch => Response.json(ch.toJson))
+          .either
+          .map {
+            case Right(ch) => Response.json(ch.toJson)
+            case Left(_) => Response.status(Status.InternalServerError)
+          }
 
       case Method.GET -> !! / "orders" =>
         OrderRepository
           .findAll()
           .runCollect
-          .map(ch => Response.json(ch.toJson))
+          .either
+          .map {
+            case Right(ch) => Response.json(ch.toJson)
+            case Left(_) => Response.status(Status.InternalServerError)
+          }
 
       case req @ Method.POST -> !! / "customers" =>
         (for {
-          body <- req.bodyAsString
+          body <- req.body.asString
             .flatMap(request =>
               ZIO
                 .fromEither(request.fromJson[Customer])
@@ -82,11 +91,11 @@ object HttpRoutes {
             .tapError(e => ZIO.logInfo(s"Unparseable body ${e}"))
           _ <- CustomerRepository.add(body)
         } yield ()).either.map {
-          case Right(_) => Response.status(Status.CREATED)
-          case Left(_)  => Response.status(Status.BAD_REQUEST)
+          case Right(_) => Response.status(Status.Created)
+          case Left(_)  => Response.status(Status.BadRequest)
         }
 
-      case Method.GET -> !! / "customers" / zhttp.http.uuid(id) =>
+      case Method.GET -> !! / "customers" / zio.http.uuid(id) =>
         CustomerRepository
           .findById(id)
           .either
@@ -97,7 +106,7 @@ object HttpRoutes {
 
       case req @ Method.POST -> !! / "orders" =>
         (for {
-          body <- req.bodyAsString
+          body <- req.body.asString
             .flatMap(request =>
               ZIO
                 .fromEither(request.fromJson[Order])
@@ -107,11 +116,11 @@ object HttpRoutes {
             .tapError(e => ZIO.logInfo(s"Unparseable body ${e}"))
           _ <- OrderRepository.add(body)
         } yield ()).either.map {
-          case Right(_) => Response.status(Status.CREATED)
-          case Left(_)  => Response.status(Status.BAD_REQUEST)
+          case Right(_) => Response.status(Status.Created)
+          case Left(_)  => Response.status(Status.BadRequest)
         }
 
-      case Method.GET -> !! / "orders" / zhttp.http.uuid(id) =>
+      case Method.GET -> !! / "orders" / zio.http.uuid(id) =>
         OrderRepository
           .findById(id)
           .either

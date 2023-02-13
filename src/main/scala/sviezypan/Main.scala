@@ -1,10 +1,8 @@
 package sviezypan
 
-import zhttp.service.server.ServerChannelFactory
-import zhttp.service.{EventLoopGroup, Server}
 import zio._
-import zio.config._
-import sviezypan.config._
+import zio.http._
+import sviezypan.config.ServerConfig
 import sviezypan.api.HttpRoutes
 import sviezypan.healthcheck.Healthcheck
 import sviezypan.repo._
@@ -14,24 +12,16 @@ import zio.sql.ConnectionPool
 object Main extends ZIOAppDefault {
 
   def run =
-    getConfig[ServerConfig]
-      .map(config =>
-        Server.port(config.port) ++
-          Server.app(
-            HttpRoutes.app ++
-              Healthcheck.expose
-          )
-      )
-      .flatMap(_.start)
+    zio.http.Server.serve(HttpRoutes.app ++ Healthcheck.expose)
       .provide(
         ServerConfig.layer,
-        ServerChannelFactory.auto,
-        EventLoopGroup.auto(),
+        ZLayer.fromZIO(zio.config.getConfig[ServerConfig]).flatMap(c => zio.http.ServerConfig.live(http.ServerConfig.default.port(c.get.port))),
+        Server.live,
         OrderRepositoryImpl.live,
         CustomerRepositoryImpl.live,
         QueryServiceImpl.live,
-        DbConfig.layer,
+        sviezypan.config.DbConfig.layer,
         ConnectionPool.live,
-        DbConfig.connectionPoolConfig
+        sviezypan.config.DbConfig.connectionPoolConfig
       )
 }

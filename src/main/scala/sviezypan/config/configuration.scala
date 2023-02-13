@@ -3,9 +3,9 @@ package sviezypan.config
 import zio._
 import zio.config._
 import zio.config.ConfigDescriptor._
-import zio.config.typesafe.TypesafeConfigSource
+import zio.config.typesafe._
+import zio.config.magnolia._
 import com.typesafe.config.ConfigFactory
-import zio.config.magnolia.DeriveConfigDescriptor.descriptor
 import zio.sql.ConnectionPoolConfig
 
 import java.util.Properties

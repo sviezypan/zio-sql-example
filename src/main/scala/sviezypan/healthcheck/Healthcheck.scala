@@ -1,11 +1,12 @@
 package sviezypan.healthcheck
 
 import zio._
-import zhttp.http._
+import zio.http._
+import zio.http.model._
 
 object Healthcheck {
-  val expose: HttpApp[Any, Throwable] = Http.collectZIO {
+  val expose: HttpApp[Any, Response] = Http.collectZIO {
     case Method.GET -> !! / "health" =>
-      ZIO.succeed(Response.status(Status.OK))
+      ZIO.succeed(Response.status(Status.Ok))
   }
 }
